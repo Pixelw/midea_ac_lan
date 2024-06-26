@@ -29,8 +29,8 @@ _LOGGER = logging.getLogger(__name__)
 TEMPERATURE_MAX = 30
 TEMPERATURE_MIN = 17
 
-FAN_SILENT = "Silent"
-FAN_FULL_SPEED = "Full"
+FAN_SILENT = "silent"
+FAN_FULL_SPEED = "full"
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -114,9 +114,12 @@ class MideaClimate(MideaEntity, ClimateEntity):
     def current_temperature(self):
         return self._device.get_attribute("indoor_temperature")
 
-    @property
-    def is_aux_heat(self):
-        return self._device.get_attribute("aux_heating")
+    # deprecated
+    # https://developers.home-assistant.io/blog/2024/03/10/climate-aux-heater-deprecated/
+    #
+    # @property
+    # def is_aux_heat(self):
+    #     return self._device.get_attribute("aux_heating")
 
     @property
     def preset_modes(self):
@@ -200,11 +203,14 @@ class MideaClimate(MideaEntity, ClimateEntity):
         except Exception as e:
             _LOGGER.debug(f"Entity {self.entity_id} update_state {repr(e)}, status = {status}")
 
-    def turn_aux_heat_on(self) -> None:
-        self._device.set_attribute(attr="aux_heating", value=True)
-
-    def turn_aux_heat_off(self) -> None:
-        self._device.set_attribute(attr="aux_heating", value=False)
+    # deprecated
+    # https://developers.home-assistant.io/blog/2024/03/10/climate-aux-heater-deprecated/
+    #
+    # def turn_aux_heat_on(self) -> None:
+    #     self._device.set_attribute(attr="aux_heating", value=True)
+    #
+    # def turn_aux_heat_off(self) -> None:
+    #     self._device.set_attribute(attr="aux_heating", value=False)
 
 
 class MideaACClimate(MideaClimate):
@@ -212,12 +218,12 @@ class MideaACClimate(MideaClimate):
         super().__init__(device, entity_key)
         self._modes = [HVACMode.OFF, HVACMode.AUTO, HVACMode.COOL, HVACMode.DRY, HVACMode.HEAT, HVACMode.FAN_ONLY]
         self._fan_speeds = {
-            FAN_SILENT.capitalize(): 20,
-            FAN_LOW.capitalize(): 40,
-            FAN_MEDIUM.capitalize(): 60,
-            FAN_HIGH.capitalize(): 80,
-            FAN_FULL_SPEED.capitalize(): 100,
-            FAN_AUTO.capitalize(): 102
+            FAN_SILENT: 20,
+            FAN_LOW: 40,
+            FAN_MEDIUM: 60,
+            FAN_HIGH: 80,
+            FAN_FULL_SPEED: 100,
+            FAN_AUTO: 102
         }
         self._swing_modes = [
             SWING_OFF.capitalize(),
@@ -235,17 +241,17 @@ class MideaACClimate(MideaClimate):
     def fan_mode(self) -> str:
         fan_speed = self._device.get_attribute(ACAttributes.fan_speed)
         if fan_speed > 100:
-            return FAN_AUTO.capitalize()
+            return FAN_AUTO
         elif fan_speed > 80:
-            return FAN_FULL_SPEED.capitalize()
+            return FAN_FULL_SPEED
         elif fan_speed > 60:
-            return FAN_HIGH.capitalize()
+            return FAN_HIGH
         elif fan_speed > 40:
-            return FAN_MEDIUM.capitalize()
+            return FAN_MEDIUM
         elif fan_speed > 20:
-            return FAN_LOW.capitalize()
+            return FAN_LOW
         else:
-            return FAN_SILENT.capitalize()
+            return FAN_SILENT
 
     @property
     def target_temperature_step(self):
@@ -262,7 +268,7 @@ class MideaACClimate(MideaClimate):
         return self._device.get_attribute(ACAttributes.outdoor_temperature)
 
     def set_fan_mode(self, fan_mode: str) -> None:
-        fan_speed = self._fan_speeds.get(fan_mode.capitalize())
+        fan_speed = self._fan_speeds.get(fan_mode)
         if fan_speed:
             self._device.set_attribute(attr=ACAttributes.fan_speed, value=fan_speed)
 
